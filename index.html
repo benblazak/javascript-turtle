@@ -1,69 +1,101 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
+
 <html>
-   <head>
-      <title>Javascript Turtle</title>
-      <script type="text/javascript" src="jquery-1.6.4.min.js"></script>
-      <link type="text/css" rel="stylesheet" href="turtle.css" />
-   </head>
-   <body>
-      <div id="wrap">
-         <h1>Javascript Turtle Graphics</h1>
-         <div id="leftcolumn">
-            <h4>Language Reference</h4>
-            <code>
-              forward(distance) <br/>
-              right(angle) <br/>
-              left(angle) <br/>
-              goto(x,y) <br/>
-              clear() <br/>
-              penup() <br/>
-              pendown() <br/>
-              reset() <br/>
-              angle(angle) <br/>
-              width(width) <br/>
-              colour(r,g,b,a) <br/>
-              write(string) <br/>
-              n = random(low,high) <br/>
-              hideTurtle() <br/>
-              showTurtle() <br/>
-              redrawOnMove(bool) <br/>
-              draw() <br/>
-              repeat(n, action) <br/>
-              wrap(bool) <br/>
-              animate(action,ms) <br/>
-            </code>
-         </div> <!-- leftcolumn -->
-         <div id="midcolumn">
-            <h4>Canvas</h4>
-            <canvas id="turtlecanvas" width="300" height="300"></canvas>
-            <canvas id="imagecanvas" width="300" height="300" style="display:none"></canvas>
-            <h4>Command</h4>
-               <input type="text" id="command" />
-         </div> <!-- midcolumn -->
-         <div id="rightcolumn">
-            <h4>Definitions</h4>
-            <textarea id="definitions" rows="20">
-// Define helper functions here.
-// For example:
+<head>
+
+<title>Javascript Turtle</title>
+
+<script type='text/javascript' src='jquery-1.6.4.min.js'></script>
+<script src='ace-builds/src-min-noconflict/ace.js' type='text/javascript' charset='utf-8'></script>
+<link type='text/css' rel='stylesheet' href='turtle.css' />
+
+</head>
+<!-- ...................................................................... -->
+<body>
+
+<h1>
+ Javascript Turtle Graphics
+ <img src='turtle.png' height='75px' style='vertical-align: bottom'>
+</h1>
+
+<div id='canvas'>
+  <canvas id='turtlecanvas'></canvas>
+  <canvas id='imagecanvas' style='display:none'></canvas>
+</div>
+
+<div id='code'>
+<div id='language-reference'>// language reference
+
+forward(distance);
+right(angle);
+left(angle);
+goto(x,y);
+clear();
+penup();
+pendown();
+reset();
+angle(angle);
+width(width);
+colour(r,g,b,a);
+write(string);
+n = random(low,high);
+hideTurtle();
+showTurtle();
+redrawOnMove(bool);
+draw();
+repeat(n, action);
+wrap(bool);
+animate(action,ms);
+
+//         (Windows)   (OS X)
+// run:    Ctrl+Enter  Cmd+Enter
+// reset:  Ctrl+Esc    Cmd+Esc
+</div>
+
+<div id='editor'>// Write commands here.  For example:
 
 function square(side) {
-   repeat(4, function () {
-      forward(side);
-      right(90);
-   });
+    repeat(4, function () {
+        forward(side);
+        right(90);
+    });
 }
 
 function demo() {
-   hideTurtle();
-   colour(0,0,255,1);
-   for(s = 100; s > 0; s -= 10) {
-      square(s);
-      right(36);
-   }
+    hideTurtle();
+    colour(0,0,255,1);
+    for(s = 100; s > 0; s -= 10) {
+        square(s);
+        right(36);
+    }
 }
-            </textarea>
-         </div> <!-- rightcolumn -->
-      </div> <!-- wrap-->
-      <script type="text/javascript" src="turtle.js"></script>
-   </body>
+
+reset();
+demo();
+</div>
+</div>
+
+<button onclick='reset();'>Reset</button>
+<button onclick='executeCommands();'>Run Commands</button>
+<button onclick='downloadImage();'>Download Image</button>
+<p>
+width: <input type='text' id='input-width' onchange='setXPixels();'>
+height: <input type='text' id='input-height' onchange='setYPixels();'>
+</p>
+<button onclick='downloadRender();'>Download Render</button>
+<p>
+render scale: <input type='text' id='input-render-scale' onchange='setRenderScale();'>
+</p>
+
+<hr>
+
+<div id='footer'>
+  Modified from a <a href='http://berniepope.id.au/html/js-turtle/turtle.html'>page by Bernie Pope</a><br>
+  Turtle graphic from <a href='http://www.mycutegraphics.com/graphics/turtle/cute-turtle.html'>MyCuteGraphics</a>
+</div>
+
+<script type='text/javascript' src='turtle.js'></script>
+
+</body>
 </html>
+

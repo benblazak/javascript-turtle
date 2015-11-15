@@ -1,3 +1,11 @@
+var g_xPixels = 300;
+var g_yPixels = 300;
+var g_renderScale = 5;
+
+var g_scale = 1;
+
+// ----------------------------------------------------------------------------
+
 // Get a handle for the canvases in the document.
 
 // The image canvas acts as an off-screen buffer for the
@@ -80,7 +88,7 @@ function draw() {
       turtleContext.restore();
    }
    // Make a composite of the turtle canvas and the image canvas.
-   turtleContext.drawImage(imageCanvas, 0, 0, 300, 300, 0, 0, 300, 300);
+   turtleContext.drawImage(imageCanvas, 0, 0, g_xPixels, g_yPixels, 0, 0, g_xPixels, g_yPixels);
 }
 
 // Clear the display, don't move the turtle.
@@ -102,6 +110,7 @@ function reset() {
    initialise();
    clear();
    draw();
+   width(1);  // explicitly call width() so that g_scale is considered
 }
 
 // Trace the forward motion of the turtle, allowing for possible
@@ -109,6 +118,8 @@ function reset() {
 
 // XXX is there a way to do the wrapping faster using mod?
 function forward(distance) {
+   distance *= g_scale;
+
    imageContext.save();
    centerCoords(imageContext);
    imageContext.beginPath();
@@ -260,9 +271,12 @@ function left(angle) {
 // XXX We should wrap the turtle here
 
 function goto(x,y) {
+   x *= g_scale;
+   y *= g_scale;
+
    if (turtle.wrap) {
-      turtle.pos.x = ((x + 150) % 300) - 150;
-      turtle.pos.y = ((y + 150) % 300) - 150;
+      turtle.pos.x = ((x + 150) % g_xPixels) - 150;
+      turtle.pos.y = ((y + 150) % g_yPixels) - 150;
    }
    else {
       turtle.pos.x = x;
@@ -270,14 +284,6 @@ function goto(x,y) {
    }
    drawIf();
 }
-
-/*
-function goto(x,y) {
-   turtle.pos.x = x;
-   turtle.pos.y = y;
-   drawIf();
-}
-*/
 
 // Set the angle of the turtle in degrees.
 function angle(angle) {
@@ -296,6 +302,8 @@ function radToDeg(deg) {
 
 // Set the width of the line.
 function width(w) {
+   w *= g_scale;
+
    turtle.width = w;
    imageContext.lineWidth = w;
 }
@@ -345,18 +353,127 @@ function setFont(font) {
    imageContext.font = font;
 }
 
-// Execute the program when the command box is changed
-// (when the user presses enter)
-$('#command').change(function () {
-   var commandText = $(this).val();
-   var definitionsText = $('#definitions').val();
-   // execute any code in the definitions box
-   eval(definitionsText);
-   // execute the code in the command box
-   eval(commandText);
-   // clear the command box
-   $(this).val('');
+// ----------------------------------------------------------------------------
+
+function setXPixels(p) {
+  if ( p === undefined )
+    p = $('#input-width')[0].value;
+  g_xPixels = p;
+  resizeCanvas();
+}
+function setYPixels(p) {
+  if ( p === undefined )
+    p = $('#input-height')[0].value;
+  g_yPixels = p;
+  resizeCanvas();
+}
+function setRenderScale(s) {
+  if ( s === undefined )
+    s = $('#input-render-scale')[0].value;
+  g_renderScale = s;
+}
+
+function resizeCanvas(xp, yp) {
+  if ( xp !== undefined ) setXPixels(xp);
+  if ( yp !== undefined ) setYPixels(xp);
+
+  imageCanvas.width = g_xPixels;
+  imageCanvas.height = g_yPixels;
+  turtleCanvas.width = g_xPixels;
+  turtleCanvas.height = g_yPixels;
+
+  reset();
+}
+
+function executeCommands() {
+  var editorText = editor.getValue();
+  eval(editorText);
+}
+
+function downloadImage() {
+  a = document.createElement('a');
+  a.download = 'turtle-graphics.png';
+  a.href = $('#imagecanvas')[0].toDataURL('image/png').replace("image/png", "image/octet-stream");
+  a.click();
+}
+
+function downloadRender() {
+  g_scale = g_renderScale;
+
+  var saved_g_xPixels = g_xPixels;
+  var saved_g_yPixels = g_yPixels;
+  var saved_imageCanvas = imageCanvas;
+  var saved_imageContext = imageContext;
+
+  g_xPixels *= g_scale;
+  g_yPixels *= g_scale;
+
+  imageCanvas = document.createElement('canvas');
+  imageContext = imageCanvas.getContext('2d');
+
+  imageCanvas.width = g_xPixels;
+  imageCanvas.height = g_yPixels;
+
+  reset();
+  executeCommands();
+
+  a = document.createElement('a');
+  a.download = 'turtle-graphics.png';
+  a.href = imageCanvas.toDataURL('image/png').replace("image/png", "image/octet-stream");
+  a.click();
+
+  g_xPixels = saved_g_xPixels;
+  g_yPixels = saved_g_yPixels;
+  imageCanvas = saved_imageCanvas;
+  imageContext = saved_imageContext;
+
+  g_scale = 1;
+  reset();
+  executeCommands();
+}
+
+// Make the language reference a read-only Ace editor
+var language_reference = ace.edit("language-reference");
+language_reference.setTheme("ace/theme/solarized_light");
+language_reference.getSession().setMode("ace/mode/javascript");
+language_reference.setOptions({
+  readOnly: true,
+  highlightActiveLine: false,
+  highlightGutterLine: false,
+  maxLines: language_reference.session.getLength(),
+});
+// set the cursor not to be visible
+language_reference.renderer.$cursorLayer.element.style.opacity=0
+
+// Enable Ace editing for commands
+var editor = ace.edit("editor");
+editor.setTheme("ace/theme/solarized_light");
+editor.getSession().setMode("ace/mode/javascript");
+editor.setOptions({
+     maxLines: language_reference.session.getLength()
 });
 
-// Reset the whole system when the page is first loaded.
-reset();
+// add keyboard bindings
+editor.commands.addCommand({
+  name: 'executeCommands',
+  bindKey: { win: 'Ctrl-Enter', mac: 'Cmd-Enter' },
+  exec: executeCommands,
+  readOnly: true,
+});
+editor.commands.addCommand({
+  name: 'resetCanvas',
+  bindKey: { win: 'Ctrl-Esc', mac: 'Cmd-Esc' },
+  exec: reset,
+  readOnly: true,
+});
+
+// when the page is first loaded
+// - fill in the default values for the text fields
+$('#input-width')[0].value = g_xPixels;
+$('#input-height')[0].value = g_yPixels;
+$('#input-render-scale')[0].value = g_renderScale;
+// - set the canvas size
+resizeCanvas(g_xPixels,g_yPixels);
+// - give focus to the command editor when the page is first loaded
+editor.focus();
+
