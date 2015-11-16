@@ -355,6 +355,8 @@ function setFont(font) {
 
 // ----------------------------------------------------------------------------
 
+color = colour;  // alias for american spelling
+
 function setXPixels(p) {
   if ( p === undefined )
     p = $('#input-width')[0].value;
